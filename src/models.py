@@ -43,3 +43,15 @@ class ModSetupPlan:
     recording_workflow: list[str]
     folder_structure: list[str]
     safety_notes: list[str]
+
+
+@dataclass
+class ProductionPackage:
+    plan: VideoPlan
+    full_script: str
+    recording_timeline: str
+    thumbnail_prompt: str
+    upload_metadata: str
+    shorts_plan: str
+    production_checklist: str
+    folder_path: str

@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from datetime import date
+
+from src.csv_importer import import_vidiq_csv
 from src.exporters import CSV_FILE, DATA_DIR, export_markdown, export_mod_setup_plan, save_keyword_to_csv
 from src.generators import create_video_plan
 from src.mod_tools import build_mod_setup_plan
 from src.models import VideoPlan
+from src.production_kit import export_30_day_calendar, export_video_package
 
 
 def parse_int_input(value: str) -> int:
@@ -52,6 +56,33 @@ def print_plan(plan: VideoPlan) -> None:
     print("\n" + "=" * 60)
 
 
+def read_keyword_metrics() -> tuple[str, int, float] | None:
+    keyword = input("Nhập keyword, ví dụ 'minecraft build': ").strip()
+    if not keyword:
+        print("Keyword không được để trống.")
+        return None
+
+    volume_input = input("Nhập search volume/tháng từ vidIQ, ví dụ 309968: ").strip()
+    competition_input = input("Nhập competition từ vidIQ, ví dụ 39.9: ").strip()
+
+    try:
+        volume = parse_int_input(volume_input)
+        competition = parse_float_input(competition_input)
+    except ValueError:
+        print("Volume hoặc competition không hợp lệ. Ví dụ đúng: 309968 và 39.9")
+        return None
+
+    if volume < 0:
+        print("Volume không được âm.")
+        return None
+
+    if not 0 <= competition <= 100:
+        print("Competition nên nằm trong khoảng 0 đến 100.")
+        return None
+
+    return keyword, volume, competition
+
+
 def process_plan(keyword: str, volume: int, competition: float, show: bool = True) -> VideoPlan:
     plan = create_video_plan(keyword, volume, competition)
     save_keyword_to_csv(plan)
@@ -65,8 +96,7 @@ def process_plan(keyword: str, volume: int, competition: float, show: bool = Tru
     return plan
 
 
-def batch_demo() -> None:
-    """Generate demo plans using sample Minecraft keyword metrics."""
+def demo_plans() -> list[VideoPlan]:
     demo_keywords = [
         {"keyword": "minecraft build", "volume": 309_968, "competition": 39.9},
         {"keyword": "minecraft survival base build", "volume": 45_000, "competition": 42},
@@ -92,6 +122,11 @@ def batch_demo() -> None:
         )
 
     plans.sort(key=lambda item: item.opportunity_score, reverse=True)
+    return plans
+
+
+def batch_demo() -> None:
+    plans = demo_plans()
 
     print("\nTop keyword opportunities:\n")
     for plan in plans:
@@ -109,31 +144,56 @@ def batch_demo() -> None:
 def interactive_mode() -> None:
     print("\nMinecraft YouTube Keyword & Video Planner")
     print("-" * 50)
+    values = read_keyword_metrics()
+    if values is None:
+        return
+    process_plan(*values, show=True)
 
-    keyword = input("Nhập keyword, ví dụ 'minecraft build': ").strip()
-    if not keyword:
-        print("Keyword không được để trống.")
+
+def production_package_mode() -> None:
+    print("\nFull Minecraft Video Production Kit")
+    print("-" * 50)
+    values = read_keyword_metrics()
+    if values is None:
         return
 
-    volume_input = input("Nhập search volume/tháng từ vidIQ, ví dụ 309968: ").strip()
-    competition_input = input("Nhập competition từ vidIQ, ví dụ 39.9: ").strip()
+    plan = process_plan(*values, show=False)
+    package = export_video_package(plan)
+    print_plan(plan)
+    print(f"\nĐã tạo full production package: {package.folder_path}")
+    print("Bao gồm script đầy đủ, recording timeline, thumbnail prompt, upload metadata, shorts plan và checklist.")
+
+
+def import_csv_mode() -> None:
+    print("\nImport keyword CSV từ vidIQ")
+    print("-" * 50)
+    path = input("Nhập đường dẫn CSV, ví dụ examples/sample_keywords.csv: ").strip()
+    create_packages_input = input("Tạo full production package cho từng keyword? (y/N): ").strip().lower()
+    create_packages = create_packages_input == "y"
 
     try:
-        volume = parse_int_input(volume_input)
-        competition = parse_float_input(competition_input)
-    except ValueError:
-        print("Volume hoặc competition không hợp lệ. Ví dụ đúng: 309968 và 39.9")
+        plans = import_vidiq_csv(path, create_packages=create_packages)
+    except (FileNotFoundError, ValueError) as exc:
+        print(f"Lỗi: {exc}")
         return
 
-    if volume < 0:
-        print("Volume không được âm.")
-        return
+    print(f"\nĐã import {len(plans)} keyword. Top cơ hội:")
+    for plan in plans[:20]:
+        print(f"- {plan.keyword} | Volume: {plan.volume} | Competition: {plan.competition} | Score: {plan.opportunity_score}")
+    print(f"\nFiles exported to: {DATA_DIR.resolve()}")
 
-    if not 0 <= competition <= 100:
-        print("Competition nên nằm trong khoảng 0 đến 100.")
-        return
 
-    process_plan(keyword, volume, competition, show=True)
+def calendar_mode() -> None:
+    print("\nTạo lịch đăng 30 ngày")
+    print("-" * 50)
+    print("Tool sẽ dùng 10 keyword demo để tạo lịch. Bạn có thể sửa file output sau.")
+    plans = demo_plans()
+    try:
+        filename = export_30_day_calendar(plans, start=date.today())
+    except ValueError as exc:
+        print(f"Lỗi: {exc}")
+        return
+    print(f"Đã xuất lịch đăng 30 ngày: {filename.resolve()}")
 
 
 def mod_setup_mode() -> None:
@@ -166,7 +226,10 @@ def menu() -> None:
         print("1. Tạo video plan từ keyword vidIQ")
         print("2. Chạy demo 10 keyword Minecraft")
         print("3. Tạo setup WorldEdit/Axiom/Litematica/Replay Mod")
-        print("4. Thoát")
+        print("4. Tạo FULL Video Production Kit cho 1 keyword")
+        print("5. Import CSV keyword từ vidIQ")
+        print("6. Tạo lịch đăng 30 ngày")
+        print("7. Thoát")
 
         choice = input("\nChọn chức năng: ").strip()
 
@@ -177,7 +240,13 @@ def menu() -> None:
         elif choice == "3":
             mod_setup_mode()
         elif choice == "4":
+            production_package_mode()
+        elif choice == "5":
+            import_csv_mode()
+        elif choice == "6":
+            calendar_mode()
+        elif choice == "7":
             print("Thoát.")
             break
         else:
-            print("Lựa chọn không hợp lệ. Hãy chọn 1, 2, 3 hoặc 4.")
+            print("Lựa chọn không hợp lệ. Hãy chọn từ 1 đến 7.")

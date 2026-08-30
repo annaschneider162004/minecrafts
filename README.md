@@ -1,12 +1,12 @@
-# Minecraft YouTube Keyword & Video Planner
+# Minecraft YouTube Keyword & Video Production Kit
 
-Tool Python CLI giúp lập kế hoạch video YouTube cho ngách **Minecraft Build**, đặc biệt là hướng:
+Tool Python CLI giúp lập kế hoạch và chuẩn bị sản xuất video YouTube cho ngách **Minecraft Build**, đặc biệt là hướng:
 
 ```text
 Minecraft Build + AI + Tutorial + Timelapse + Replay Mod cinematic
 ```
 
-Tool này phù hợp nếu bạn đang lấy dữ liệu keyword từ vidIQ, ví dụ:
+Tool phù hợp khi bạn lấy dữ liệu keyword từ vidIQ, ví dụ:
 
 - Keyword: `minecraft build`
 - Search volume/tháng: `309968`
@@ -35,9 +35,28 @@ Khi nhập keyword + volume + competition, tool tự tạo:
 - File CSV tổng hợp
 - File Markdown kế hoạch chi tiết cho từng keyword
 
-### 2. Minecraft mod/tool setup
+### 2. Video Production Kit
 
-Tool có thêm chức năng tạo setup cho workflow sản xuất video bằng:
+Chức năng nâng cấp tạo full package cho một video:
+
+```text
+output/videos/<keyword-slug>/
+├── 01_keyword_summary.md
+├── 02_ai_build_prompt.md
+├── 03_full_script.txt
+├── 04_recording_timeline.md
+├── 05_thumbnail_prompt.md
+├── 06_upload_metadata.txt
+├── 07_shorts_plan.md
+├── 08_production_checklist.md
+└── README.md
+```
+
+Package này giúp bạn đi từ keyword đến gần như toàn bộ bộ tài liệu sản xuất video.
+
+### 3. Minecraft mod/tool setup
+
+Tool có chức năng tạo setup cho workflow sản xuất video bằng:
 
 - **Minecraft Java Edition**
 - **WorldEdit**
@@ -48,6 +67,27 @@ Tool có thêm chức năng tạo setup cho workflow sản xuất video bằng:
 - **OBS Studio**
 - **Iris + Sodium**
 - **Chunky**
+
+### 4. Import CSV từ vidIQ
+
+Bạn có thể nhập CSV có cột:
+
+```csv
+keyword,volume,competition
+minecraft build,309968,39.9
+```
+
+Tool sẽ tạo plan hàng loạt, sort theo opportunity score, và có thể tạo full production package cho từng keyword.
+
+### 5. Lịch đăng 30 ngày
+
+Tool có thể tạo file:
+
+```text
+output/30_day_content_calendar.md
+```
+
+Lịch gồm video dài và Shorts từ các keyword Minecraft mẫu.
 
 ## Yêu cầu
 
@@ -61,18 +101,21 @@ Tool dùng **Python standard library**, không cần API key, không cần cài 
 python minecraft_youtube_tool.py
 ```
 
-Sau khi chạy, bạn sẽ thấy menu:
+Menu hiện tại:
 
 ```text
 1. Tạo video plan từ keyword vidIQ
 2. Chạy demo 10 keyword Minecraft
 3. Tạo setup WorldEdit/Axiom/Litematica/Replay Mod
-4. Thoát
+4. Tạo FULL Video Production Kit cho 1 keyword
+5. Import CSV keyword từ vidIQ
+6. Tạo lịch đăng 30 ngày
+7. Thoát
 ```
 
-## Ví dụ với keyword `minecraft build`
+## Ví dụ nhanh với keyword `minecraft build`
 
-Chọn chức năng `1`, sau đó nhập:
+Chọn chức năng `4`, sau đó nhập:
 
 ```text
 Nhập keyword: minecraft build
@@ -80,48 +123,40 @@ Nhập search volume/tháng từ vidIQ: 309968
 Nhập competition từ vidIQ: 39.9
 ```
 
-Tool sẽ tính gần như:
+Tool sẽ tạo full package tại:
 
 ```text
-Keyword: minecraft build
-Volume/month: 309968
-Competition: 39.9/100 - Medium
-Opportunity Score: 90.1/100
-Priority: Very High
-Build Type: survival base
-Video Format: tutorial
+output/videos/minecraft-build/
 ```
 
-## File xuất ra
+Trong đó có:
 
-Tool tự tạo thư mục `output/` và xuất:
+- `03_full_script.txt` để đọc voiceover
+- `04_recording_timeline.md` để quay footage
+- `05_thumbnail_prompt.md` để làm thumbnail
+- `06_upload_metadata.txt` để upload YouTube
+- `07_shorts_plan.md` để cắt Shorts
+- `08_production_checklist.md` để kiểm tra tiến độ
+
+## Import CSV
+
+Có file mẫu:
 
 ```text
-output/minecraft_keywords.csv
-output/minecraft-build_video_plan.md
-output/minecraft_mod_recording_setup.md
+examples/vidiq_import_template.csv
 ```
 
-Trong file Markdown video plan sẽ có:
+Chạy tool, chọn `5`, nhập:
 
-- Recommended Titles
-- Recommended Production Tools
-- AI Build Prompt
-- Description
-- Tags
-- Thumbnail Text Ideas
-- Shot List
-- Editing Checklist
-- Shorts Ideas
-- Script Outline
+```text
+examples/vidiq_import_template.csv
+```
 
-Trong file setup mod sẽ có:
+Nếu muốn tạo full package cho từng keyword, nhập:
 
-- Danh sách tool/mod nên dùng
-- Các bước cài đặt
-- Workflow quay video bằng Replay Mod
-- Cấu trúc thư mục sản xuất video
-- Lưu ý an toàn khi dùng mod/schematic
+```text
+y
+```
 
 ## Công thức Opportunity Score
 
@@ -178,25 +213,11 @@ Lấy:
 - Search volume
 - Competition
 
-Sau đó chạy tool để tạo video plan.
+Sau đó chạy tool để tạo video plan hoặc full production package.
 
 ### Bước 3: Dùng AI tạo concept
 
-Copy phần `AI Build Prompt` trong file Markdown và đưa vào ChatGPT hoặc AI bạn dùng.
-
-Ví dụ prompt được tool tạo:
-
-```text
-Design a Minecraft survival base for a YouTube video targeting the keyword: "minecraft build".
-
-Requirements:
-- Style: visually impressive but buildable in survival mode
-- Include: storage room, bedroom, crafting area, furnace area, farm, enchanting room, and secret room
-- Use mostly obtainable blocks
-- Make the build look good from the front for thumbnail
-- Suggest where WorldEdit, Axiom, and Litematica can speed up the build
-- Suggest Replay Mod camera shots for the final reveal
-```
+Copy phần `02_ai_build_prompt.md` trong package và đưa vào ChatGPT hoặc AI bạn dùng.
 
 ### Bước 4: Xây trong Minecraft
 
@@ -252,12 +273,13 @@ INSANE BUILD!
 
 ### Bước 7: Upload YouTube
 
-Copy từ file Markdown:
+Copy từ package:
 
 - Title
 - Description
 - Tags
 - Thumbnail text
+- Pinned comment
 
 ## Chiến lược kênh đề xuất
 
@@ -283,21 +305,6 @@ Lịch đăng gợi ý:
 5-7 Shorts/tuần: timelapse, before/after, secret room, final reveal
 ```
 
-## Demo batch
-
-Chọn chức năng `2` để tạo kế hoạch mẫu cho 10 keyword:
-
-- `minecraft build`
-- `minecraft survival base build`
-- `minecraft starter house build`
-- `minecraft build tutorial`
-- `easy minecraft build`
-- `minecraft secret base build`
-- `ai minecraft build`
-- `chatgpt minecraft build`
-- `minecraft but ai builds my house`
-- `minecraft horror build`
-
 ## Cấu trúc project
 
 ```text
@@ -305,14 +312,17 @@ minecrafts/
 ├── minecraft_youtube_tool.py
 ├── README.md
 ├── examples/
-│   └── sample_keywords.csv
+│   ├── sample_keywords.csv
+│   └── vidiq_import_template.csv
 └── src/
     ├── __init__.py
     ├── cli.py
+    ├── csv_importer.py
     ├── exporters.py
     ├── generators.py
     ├── mod_tools.py
     ├── models.py
+    ├── production_kit.py
     └── scoring.py
 ```
 
@@ -320,6 +330,6 @@ minecrafts/
 
 - Dữ liệu volume/competition nên lấy từ vidIQ hoặc công cụ keyword bạn tin tưởng.
 - Tool không scrape vidIQ và không cần đăng nhập.
-- Đây là bản MVP offline. Có thể nâng cấp sau để import CSV từ vidIQ hoặc kết nối YouTube Data API.
+- Đây là tool planning/sản xuất tài liệu; nó chưa tự điều khiển Minecraft hoặc tự dựng video hoàn chỉnh.
 - Chỉ tải mod từ nguồn chính thức/đáng tin cậy.
 - Backup world trước khi dùng WorldEdit/Axiom.
